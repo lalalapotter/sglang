@@ -296,7 +296,7 @@ class ModelRunner:
         if self.device == "cuda":
             backend = "nccl"
         elif self.device == "xpu":
-            backend = "xccl"
+            backend = "gloo"
         elif self.device == "hpu":
             backend = "hccl"
         elif self.device == "cpu":
