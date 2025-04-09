@@ -180,8 +180,8 @@ class HiCacheController:
             self.stop_event, buffer_count=10, max_buffer_size=100
         )
 
-        self.write_stream = torch.cuda.Stream()
-        self.load_stream = torch.cuda.Stream()
+        self.write_stream = torch.xpu.Stream()
+        self.load_stream = torch.xpu.Stream()
 
         self.write_thread = threading.Thread(
             target=self.write_thread_func_buffer, daemon=True
@@ -301,7 +301,7 @@ class HiCacheController:
         """
         Load KV caches from host memory to device memory layer by layer.
         """
-        with torch.cuda.stream(self.load_stream):
+        with torch.xpu.stream(self.load_stream):
             while not self.stop_event.is_set():
                 self.load_cache_event.wait(timeout=1)
                 if not self.load_cache_event.is_set():
@@ -347,7 +347,7 @@ class HiCacheController:
             return op_
 
         buffer = None
-        with torch.cuda.stream(self.write_stream):
+        with torch.xpu.stream(self.write_stream):
             while not self.stop_event.is_set():
                 try:
                     operation = self.write_queue.get(block=True, timeout=1)
