@@ -359,6 +359,8 @@ class DefaultModelLoader(BaseModelLoader):
         model_config: ModelConfig,
         device_config: DeviceConfig,
     ) -> nn.Module:
+        original_target_device = device_config.device
+        device_config.device = "cpu"
         target_device = torch.device(device_config.device)
         with set_default_torch_dtype(model_config.dtype):
             with target_device:
@@ -379,6 +381,11 @@ class DefaultModelLoader(BaseModelLoader):
                     # parameters onto device for processing and back off after.
                     with device_loading_context(module, target_device):
                         quant_method.process_weights_after_loading(module)
+        from ipex_llm import optimize_model
+        optimize_model(model,
+                        low_bit="fp8",
+                        torch_dtype=model_config.dtype)
+        model = model.to(device=original_target_device)
         return model.eval()
 
 
